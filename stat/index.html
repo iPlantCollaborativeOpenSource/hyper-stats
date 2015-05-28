@@ -1,0 +1,63 @@
+<!doctype html>
+
+<html lang="en">
+    <head> 
+        <meta charset="utf-8"> 
+        <title>title</title> 
+        <script src="node_modules/react/dist/react.js"></script>
+        <script src="node_modules/react/dist/JSXTransformer.js"></script> 
+        <link href="css/rickshaw.min.css" rel="stylesheet"></link>
+        <style>
+            #graph { 
+                float: left; 
+            } 
+            #y-axis { 
+                float: left; 
+            }
+            .y.axis {
+              fill: #AAA;
+              font: 13px/1.4 Helvetica,arial,nimbussansl,liberationsans,freesans,clean,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";            
+            }
+            #controls {
+                width: 100px;
+                float: left;
+            }
+            .axis path,
+            .axis line {
+                fill: none;
+                stroke: #808080;
+            }
+            .line {
+              fill: none;
+              stroke: steelblue;
+              stroke-width: 2px;
+            }
+            .rx.area {
+              fill:crimson;
+            }
+            .rx.line {
+              stroke:brown;
+            }
+            .tx.area {
+              fill:cornflowerblue;
+            }
+            .tx.line {
+              stroke:darkblue;
+            }
+        </style>
+    </head>
+    <body> 
+        <div id="app"></div>
+        <script src="node_modules/d3/d3.min.js"></script>
+        <script src="node_modules/rickshaw/vendor/d3.layout.min.js"></script>
+        <script src="node_modules/rickshaw/rickshaw.min.js"></script>
+        <script src="node_modules/cubism/cubism.v1.js"></script>
+        <script type="text/jsx" src="js/Utils.js"></script>
+        <script type="text/jsx" src="js/GraphMixins.js"></script>
+        <script type="text/jsx" src="js/GraphNetwork.js"></script>
+        <script type="text/jsx" src="js/GraphMemory.js"></script>
+        <script type="text/jsx" src="js/GraphCPU.js"></script>
+        <script type="text/jsx" src="js/Graph.js"></script>
+        <script type="text/jsx" src="js/App.js"></script>
+    </body>
+</html>
