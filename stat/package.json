@@ -1,0 +1,9 @@
+{
+  "name": "hyper-client",
+  "version": "0.0.1",
+  "description": "Front-end to hyper-stats service",
+  "dependencies": {
+    "d3": "^3.5.5",
+    "react": "^0.13.3"
+   }
+}
