@@ -8,15 +8,15 @@
         <script src="node_modules/react/dist/JSXTransformer.js"></script> 
         <link href="css/rickshaw.min.css" rel="stylesheet"></link>
         <style>
-            #graph { 
+            #graph-container { 
                 float: left; 
             } 
             #y-axis { 
                 float: left; 
             }
-            .y.axis {
+            .y.axis, .x.axis {
               fill: #AAA;
-              font: 13px/1.4 Helvetica,arial,nimbussansl,liberationsans,freesans,clean,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";            
+              font: 14px/1.4 Helvetica,arial,nimbussansl,liberationsans,freesans,clean,sans-serif,"Segoe UI Emoji","Segoe UI Symbol";            
             }
             #controls {
                 width: 100px;
@@ -33,13 +33,13 @@
               stroke-width: 2px;
             }
             .rx.area {
-              fill:crimson;
+                fill: rgba(220, 20, 60, 0.14);            
             }
             .rx.line {
               stroke:brown;
             }
             .tx.area {
-              fill:cornflowerblue;
+              fill: rgba(100, 149, 237, 0.14);
             }
             .tx.line {
               stroke:darkblue;
@@ -48,16 +48,14 @@
     </head>
     <body> 
         <div id="app"></div>
-        <script src="node_modules/d3/d3.min.js"></script>
-        <script src="node_modules/rickshaw/vendor/d3.layout.min.js"></script>
-        <script src="node_modules/rickshaw/rickshaw.min.js"></script>
-        <script src="node_modules/cubism/cubism.v1.js"></script>
+        <script src="node_modules/d3/d3.js"></script>
         <script type="text/jsx" src="js/Utils.js"></script>
-        <script type="text/jsx" src="js/GraphMixins.js"></script>
-        <script type="text/jsx" src="js/GraphNetwork.js"></script>
-        <script type="text/jsx" src="js/GraphMemory.js"></script>
-        <script type="text/jsx" src="js/GraphCPU.js"></script>
+        <script type="text/jsx" src="js/Store.js"></script>
+        <script type="text/jsx" src="js/GraphController.js"></script>
         <script type="text/jsx" src="js/Graph.js"></script>
+        <script type="text/jsx" src="js/CPUGraph.js"></script>
+        <script type="text/jsx" src="js/MemoryGraph.js"></script>
+        <script type="text/jsx" src="js/NetworkGraph.js"></script>
         <script type="text/jsx" src="js/App.js"></script>
     </body>
 </html>

@@ -1,23 +1,31 @@
 var App = React.createClass({
   getInitialState: function() {
     return {
-       graph_type:"net",
-       points: 50,
+       graph: null,
     };
   },
+  componentDidMount: function() {
+      var me = this;
+      this.setState({ 
+          graph: new GraphController(document.querySelector("#graph-container")) 
+      }, function() {
+          me.state.graph.switch("cpu")
+      })
+  },
   handleClick : function(e) {
-      var that = this;
-      ["cpu", "mem", "net"].some(function(graph) {
+      var me = this;
+      var things = ["cpu", "mem", "net"];
+      things.some(function(type) {
           // ex. target.id is cpuButton
-          var found = e.target.id.contains(graph);
-          if (found) that.setState({ graph_type : graph });
-          return found;
+          var found = e.target.id.contains(type);
+          return found && me.state.graph.switch(type);
       })
   },
   render: function() {
+    //><Graph points={ this.state.points } type={ this.state.graph_type }>
     return (
         <div>
-            <Graph points={ this.state.points } type={ this.state.graph_type } />
+            <div points={ this.state.points } id="graph-container"></div>
             <div id="controls">
               <button id="cpuButton" onClick={ this.handleClick }>cpu</button>
               <button id="memButton" onClick={ this.handleClick }>memory</button>

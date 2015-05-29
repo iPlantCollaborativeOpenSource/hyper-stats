@@ -1,10 +1,24 @@
-var GraphNetworkMixin = {
-  componentDidMount:componentDidMount,
-  shouldComponentUpdate: shouldComponentUpdate,
-  clear: clear,
-  update: function(cb) {
+var NetworkGraph = function(el) {
+    Graph.call(this, el, {
+      upper : {
+        query: "*.*.*b.rx",
+        data: [],
+        transform: "derivative",
+      },
+      lower : {
+        query: "*.*.*b.tx",
+        data: [],
+        transform: "derivative",
+      }
+    });
+};
+
+NetworkGraph.prototype = Object.create(Graph.prototype);
+NetworkGraph.prototype.constructor = NetworkGraph;
+
+NetworkGraph.prototype.fetch = function(cb) {
     var me = this;
-    var series = [ this.state.upper, this.state.lower ];
+    var series = [ this.upper, this.lower ];
 
     var queries = series.map(function(s) { 
       if (s.transform == "derivative") {
@@ -13,25 +27,26 @@ var GraphNetworkMixin = {
       return s.query;
     });
 
-    fetch(me.props.points, queries[0], function(err, data) {
+    fetch(me.points, queries[0], function(err, data) {
       series[0].data = data;
-      fetch(me.props.points, queries[1], function(err, data) {
+      fetch(me.points, queries[1], function(err, data) {
         series[1].data = data;
         cb.call(me);
       }) 
     }) 
-  },
-  redraw: function() {
+}
+
+NetworkGraph.prototype.make = function() {
       var me = this;
-      var data = me.state.lower.data;
-      //var data = me.state.upper.data;
-      var rxData = me.state.upper.data;
-      var txData = me.state.lower.data;
+      var graphDom = me.element;
+      var data = me.lower.data;
+      var rxData = me.upper.data;
+      var txData = me.lower.data;
         
       var yAxisWidth = 50,
-          margin = {top: 10, right: 0, bottom: 10, left: yAxisWidth},
-          width = this.props.width - margin.left - margin.right,
-          height = this.props.height - margin.top - margin.bottom;
+          margin = {top: 10, right: 20, bottom: 30, left: yAxisWidth},
+          width = this.width - margin.left - margin.right,
+          height = this.height - margin.top - margin.bottom;
 
       var get = function(name) { 
         return function(obj) {
@@ -42,18 +57,17 @@ var GraphNetworkMixin = {
       getX = get("x"); 
       getY = get("y"); 
 
-      var max = d3.max([ d3.max(rxData, getY)
+      var yMax = d3.max([ d3.max(rxData, getY)
                        , d3.max(txData, getY) ]);
-      
-      var graphDom = me.getDOMNode();
+      var xMax = d3.max(data, getX);
 
-      var x = d3.time.scale()
+      var x = d3.scale.linear()
           .range([0, width])
           .domain(d3.extent(data, getX));
 
       var y = d3.scale.linear()
           .range([height, 0])
-          .domain([-max, max]);
+          .domain([-yMax, yMax]);
 
       var line = d3.svg.line()
           //.interpolate("basis")
@@ -78,8 +92,8 @@ var GraphNetworkMixin = {
         .y1(function(d) { return -y(d.y) + height; })
 
       var svg = d3.select(graphDom).append("svg")
-            .attr("width", me.props.width)
-            .attr("height", me.props.height)
+            .attr("width", me.width)
+            .attr("height", me.height)
           .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -104,36 +118,29 @@ var GraphNetworkMixin = {
         .attr("d", lineReflect)
         .attr("transform", "translate(0," + height + ")")
 
+     
       var yAxis = d3.svg.axis()
-          .tickFormat(function(d, i){ 
-            if (i == 2) {
-              return bytesToString(d); 
-            }
-            return "";
+          .tickFormat(function(d){ 
+              return bytesToString(Math.abs(d)); 
           })
-          .ticks(3)
+          .tickValues([ 0.6 * yMax, -0.6 * yMax])
           .scale(y)
           .orient("left");
 
       svg.append("g")
         .attr("class", "y axis")
         .call(yAxis)
-  },
+
+      // var xAxis = d3.svg.axis()
+      //     .tickFormat(secondsToString)
+      //     .tickValues([x.ticks(4)[0]])
+      //     .scale(x)
+      //     .orient("bottom");
+
+      svg.append("text")
+        .attr("class", "x axis")
+        .attr("transform", "translate(" + (0.1 * width + margin.left) + "," + (height + margin.top + 15) +  ")")
+        .text("about " + secondsToString(data[0].x))
+
+
 }
-var GraphNetwork = React.createClass({
-  mixins : [GraphRender, GraphNetworkMixin],
-  getInitialState: function() {
-    return {
-      upper : {
-        query: "*.*.*b.rx",
-        data: [],
-        transform: "derivative",
-      },
-      lower : {
-        query: "*.*.*b.tx",
-        data: [],
-        transform: "derivative",
-      }
-    }
-  }
-})
