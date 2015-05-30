@@ -82,4 +82,11 @@ var get = function(name) {
     };
 };
 
+var getAllUUIDS = function(callback) {
+    host = "http://monarch.iplantc.org:8000";
+    d3.json(host + "/metrics/find?format=completer&query=*.*.*.cpu", function(result) {
+      if (!result) return callback(new Error("unable to find metrics"));
+      callback(result.metrics.map(function(d) { return d.path.split(".")[2]; }));
+    });
+};
 

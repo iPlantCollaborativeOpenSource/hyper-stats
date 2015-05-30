@@ -1,16 +1,24 @@
-var NetworkGraph = function(el) {
-    Graph.call(this, el, {
+var NetworkGraph = function(settings) {
+    var defaults = {
       upper : {
-        query: "*.*.*b.rx",
+        query: "*.*." + settings.uuid + ".rx",
         data: [],
         transform: "derivative",
       },
       lower : {
-        query: "*.*.*b.tx",
+        query: "*.*." + settings.uuid + ".tx",
         data: [],
         transform: "derivative",
       }
-    });
+    }
+
+    for (prop in defaults) {
+        if (settings[prop] == undefined) {
+            settings[prop] = defaults[prop];
+        }
+    }
+
+    Graph.call(this, settings);
 };
 
 NetworkGraph.prototype = Object.create(Graph.prototype);
@@ -53,11 +61,11 @@ NetworkGraph.prototype.make = function() {
 
       var yMax = d3.max([ d3.max(rxData, getY)
                         , d3.max(txData, getY)
-                       , 1.2 * 1024]);
+                       , 1.2 * 1024]) || 0;
       var yMeanUpper = d3.max([ d3.mean(rxData, getY)
-                       , d3.mean(rxData, getY)]);
+                       , d3.mean(rxData, getY)]) || 0;
       var yMeanLower = d3.max([ d3.mean(txData, getY)
-                       , d3.mean(txData, getY)]);
+                       , d3.mean(txData, getY)]) || 0;
 
 
       var xMax = d3.max(data, getX);
@@ -69,7 +77,7 @@ NetworkGraph.prototype.make = function() {
 
       var y = d3.scale.linear()
           .range([height, 0])
-          .domain([-yMax, yMax]);
+          .domain([-1.2 * yMax,  1.2 * yMax]);
 
       var line = d3.svg.line()
           //.interpolate("basis")
@@ -138,8 +146,7 @@ NetworkGraph.prototype.make = function() {
         .attr("d", lineReflect)
         .attr("transform", "translate(0," + height + ")")
 
-     
-      var yTick = Math.max(1024, 0.6 * yMax)
+      var yTick = Math.max(1024, yMax)
       var yAxis = d3.svg.axis()
           .tickFormat(function(d){ 
               return bytesToString(Math.abs(d)); 
@@ -163,6 +170,4 @@ NetworkGraph.prototype.make = function() {
         .attr("style", "text-anchor:middle")
         .attr("transform", "translate(" + (0.5 * width) + "," + (height + margin.top + 15) +  ")")
         .text(secondsToString(data[0].x))
-
-
 }

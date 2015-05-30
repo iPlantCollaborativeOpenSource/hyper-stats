@@ -1,10 +1,17 @@
-var Graph = function(el, config) {
+var ReactGraph = React.createClass({
+  render: function() {
+      return (
+          <div id="graph"></div>
+      )
+  }
+})
+
+var Graph = function(config) {
     config = config || {};
 
     var defaults = {
         points: 50,
         resolution: 2, // minutes per point
-        query: "*.*.*b.cpu",
         transform: "total",
         data: [],
         width: 730,
@@ -20,7 +27,7 @@ var Graph = function(el, config) {
         }
     }
 
-    this.container = el;
+    //this.container = config.container;
     this.element = document.createElement("div");
     this.element.style.display = "none";
     this.container.appendChild(this.element);
@@ -36,9 +43,11 @@ Graph.prototype.create = function(cb) {
     });
 }
 Graph.prototype.hide = function() {
+    console.log("HIDE", this.type)
     this.element.style.display = "none";
 }
 Graph.prototype.show = function() {
+    console.log("SHOW", this.type)
     this.element.style.display = "inline";
 }
 Graph.prototype.clear = function() {
@@ -49,7 +58,7 @@ Graph.prototype.clear = function() {
 }
 Graph.prototype.fetch = function(cb) {
     var me = this;
-    var query = this.query;
+    var query = "*.*." + this.uuid + "." + this.type
 
     if (this.transform == "derivative") {
       query = "perSecond(" + query + ")"
@@ -73,8 +82,8 @@ Graph.prototype.make = function() {
       getX = get("x"); 
       getY = get("y"); 
 
-      var yMax = d3.max(data, getY);
-      var yMean = d3.mean(data, getY);
+      var yMax = d3.max(data, getY) || 0;
+      var yMean = d3.mean(data, getY) || 0;
       var xMax = d3.max(data, getX);
       var xMin = d3.min(data, getX);
       
@@ -84,7 +93,7 @@ Graph.prototype.make = function() {
 
       var y = d3.scale.linear()
           .range([height, 0])
-          .domain([0, 1]);//yMax * 1.2]);
+          .domain([0, yMax * 1.2]);
 
       var line = d3.svg.line()
           //.interpolate("basis")
