@@ -27,9 +27,9 @@ NetworkGraph.prototype.fetch = function(cb) {
       return s.query;
     });
 
-    fetch(me.points, queries[0], function(err, data) {
+    fetch(me.points, me.resolution, queries[0], function(err, data) {
       series[0].data = data;
-      fetch(me.points, queries[1], function(err, data) {
+      fetch(me.points, me.resolution, queries[1], function(err, data) {
         series[1].data = data;
         cb.call(me);
       }) 
@@ -48,18 +48,20 @@ NetworkGraph.prototype.make = function() {
           width = this.width - margin.left - margin.right,
           height = this.height - margin.top - margin.bottom;
 
-      var get = function(name) { 
-        return function(obj) {
-          return obj[name];
-        }
-      }
-
-      getX = get("x"); 
-      getY = get("y"); 
+      var getX = get("x"); 
+      var getY = get("y"); 
 
       var yMax = d3.max([ d3.max(rxData, getY)
-                       , d3.max(txData, getY) ]);
+                        , d3.max(txData, getY)
+                       , 1.2 * 1024]);
+      var yMeanUpper = d3.max([ d3.mean(rxData, getY)
+                       , d3.mean(rxData, getY)]);
+      var yMeanLower = d3.max([ d3.mean(txData, getY)
+                       , d3.mean(txData, getY)]);
+
+
       var xMax = d3.max(data, getX);
+      var xMin = d3.min(data, getX);
 
       var x = d3.scale.linear()
           .range([0, width])
@@ -98,6 +100,24 @@ NetworkGraph.prototype.make = function() {
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
       svg.append("path")
+        .datum([
+            { x: xMin, y: yMeanUpper },
+            { x: xMax, y: yMeanUpper }
+        ])
+        .style("stroke-dasharray", ("3, 3"))
+        .attr("class", "mean line")
+        .attr("d", line)
+
+      svg.append("path")
+        .datum([
+            { x: xMin, y: -yMeanLower },
+            { x: xMax, y: -yMeanLower }
+        ])
+        .style("stroke-dasharray", ("3, 3"))
+        .attr("class", "mean line")
+        .attr("d", line)
+
+      svg.append("path")
         .datum(rxData)
         .attr("class", "rx area")
         .attr("d", area);
@@ -119,11 +139,12 @@ NetworkGraph.prototype.make = function() {
         .attr("transform", "translate(0," + height + ")")
 
      
+      var yTick = Math.max(1024, 0.6 * yMax)
       var yAxis = d3.svg.axis()
           .tickFormat(function(d){ 
               return bytesToString(Math.abs(d)); 
           })
-          .tickValues([ 0.6 * yMax, -0.6 * yMax])
+          .tickValues([ -yTick, yTick, yMeanUpper, -yMeanLower])
           .scale(y)
           .orient("left");
 
@@ -139,8 +160,9 @@ NetworkGraph.prototype.make = function() {
 
       svg.append("text")
         .attr("class", "x axis")
-        .attr("transform", "translate(" + (0.1 * width + margin.left) + "," + (height + margin.top + 15) +  ")")
-        .text("about " + secondsToString(data[0].x))
+        .attr("style", "text-anchor:middle")
+        .attr("transform", "translate(" + (0.5 * width) + "," + (height + margin.top + 15) +  ")")
+        .text(secondsToString(data[0].x))
 
 
 }

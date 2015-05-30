@@ -2,7 +2,8 @@ var Graph = function(el, config) {
     config = config || {};
 
     var defaults = {
-        points: 1000,
+        points: 50,
+        resolution: 2, // minutes per point
         query: "*.*.*b.cpu",
         transform: "total",
         data: [],
@@ -54,7 +55,7 @@ Graph.prototype.fetch = function(cb) {
       query = "perSecond(" + query + ")"
     }
 
-    fetch(this.points, query, function(err, data) {
+    fetch(this.points, this.resolution, query, function(err, data) {
       me.data = data;
       cb && cb()
     }) 
@@ -69,26 +70,21 @@ Graph.prototype.make = function() {
           width = this.width - margin.left - margin.right,
           height = this.height - margin.top - margin.bottom;
 
-      var get = function(name) { 
-        return function(obj) {
-          return obj[name];
-        }
-      }
-
       getX = get("x"); 
       getY = get("y"); 
 
       var yMax = d3.max(data, getY);
+      var yMean = d3.mean(data, getY);
       var xMax = d3.max(data, getX);
       var xMin = d3.min(data, getX);
       
       var x = d3.scale.linear()
           .range([0, width])
-          .domain(d3.extent(data,getX));
+          .domain(d3.extent(data, getX));
 
       var y = d3.scale.linear()
           .range([height, 0])
-          .domain([0, yMax * 1.2]);
+          .domain([0, 1]);//yMax * 1.2]);
 
       var line = d3.svg.line()
           //.interpolate("basis")
@@ -108,6 +104,15 @@ Graph.prototype.make = function() {
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
       svg.append("path")
+        .datum([
+            { x: xMin, y: yMean },
+            { x: xMax, y: yMean }
+        ])
+        .style("stroke-dasharray", ("3, 3"))
+        .attr("class", "mean line")
+        .attr("d", line)
+
+      svg.append("path")
         .datum(data)
         .attr("class", "rx area")
         .attr("d", area)
@@ -119,7 +124,7 @@ Graph.prototype.make = function() {
 
       var yAxis = d3.svg.axis()
           .tickFormat(d3.format(".0%"))
-          .tickValues([0.6 * yMax])
+          .tickValues([yMean, yMax])
           .scale(y)
           .orient("left");
 
@@ -144,6 +149,7 @@ Graph.prototype.make = function() {
 
       svg.append("text")
         .attr("class", "x axis")
-        .attr("transform", "translate(" + (0.1 * width + margin.left) + "," + (height + margin.top + 15) +  ")")
-        .text("about " + secondsToString(data[0].x))
+        .attr("style", "text-anchor:middle")
+        .attr("transform", "translate(" + (0.5 * width) + "," + (height + margin.top + 15) +  ")")
+        .text(secondsToString(data[0].x))
 }

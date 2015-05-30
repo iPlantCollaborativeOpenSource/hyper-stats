@@ -1,10 +1,16 @@
-var fetch = function(minutes, expression, callback) {
-  // fetch(10,"perSecond(stats.*.*51.tx)", function(a,b){ console.log(a,b); }) 
+// fetch 10 hours,perSecond(stats.*.*51.tx), "sum" 
+// fetch(10, 60,"perSecond(stats.*.*51.tx)", function(a,b){ console.log(a,b); }) 
+var fetch = function(points, resolution, expression, callback) {
       var now, then, step, host;
       host = "http://monarch.iplantc.org:8000";
 
       now = Date.now();
-      then = (now / 1000) - minutes * 60  - 4 * 60 // add 4 minutes for extra room
+      then = (now / 1000) - points * 60 * resolution  - 4 * 60 * resolution // add 4 more points
+
+      // Apply the summarize, if resolution is greater than 1 (minute)
+      if (resolution > 1) expression = "summarize(" + expression + ",'"
+          + (!(resolution % 60) ? resolution / 60 + "hour" : resolution + "min")
+          + "','avg')";
 
       var req = host + "/render?format=json"
       + "&target=" + encodeURIComponent(expression)
@@ -14,7 +20,7 @@ var fetch = function(minutes, expression, callback) {
         if (!text) return callback(new Error("unable to load data"));
         var json = JSON.parse(text);
         var data = json[0].datapoints.slice(1) // trim first
-        data.length = minutes;                 // trim extra tail, in case 
+        data.length = points;                 // trim extra tail, in case 
         callback(null, data.map(function(arr) {
           return { x: arr[1], y: arr[0] };
         }));
@@ -64,10 +70,16 @@ var secondsToString = function(seconds, i) {
 
     data.some(function(d, i) {
         if (d > 0) {
-            console.log("i", i)
             result = d + " " + labels[i] + (d > 1 ? "s" : "") + " ago"
         }
         return d > 0;
     })
     return result;
 }
+var get = function(name) { 
+    return function(obj) {
+      return obj[name];
+    };
+};
+
+
