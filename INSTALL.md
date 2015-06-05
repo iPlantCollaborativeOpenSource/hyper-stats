@@ -4,21 +4,14 @@ Install
 Libvirt
 -------
 
-Nagios will use the check_nrpe command to execute our nagios plugin
-`libvirt/virt-stats.py`.
-
-Nagios plugins are just an executable that writes to stdout accoring to the
-[nagios plugin spec](http://nagios.sourceforge.net/docs/3_0/pluginapi.html).
-
-The script must be executed as root in order for libvirt to access the
-hypervisor. 
-
-The plugin has been tested on libvirt versions 0.9.8 and up. 
+Nagios will use the check_nrpe command to execute the nagios plugin
+`libvirt/virt-stats.py` on the compute nodes in your cloud. Below details
+testing the plugin on a compute node. Requirements include libvirt
+and the python bindings for its C api.
 
 Check version of libvirt:
 ```
-root# /usr/sbin/libvirtd --version
-/usr/sbin/libvirtd (libvirt) 1.1.1
+root> /usr/sbin/libvirtd --version
 ```
 Install python libvirt bindings:
 ```
@@ -26,16 +19,21 @@ Install python libvirt bindings:
 ```
 Test output of plugin:
 ```
-root# /path/to/hyper-stats/libvirt/virt-stats.py
+root> /path/to/hyper-stats/libvirt/virt-stats.py
 ```
 
+**note:** There is a nasty bug with nrpe which limits the size of the output that can
+be returned from a plugin to 1kb. As a countermeasure the plugin has a flag in the source to compress its
+output.
+
 If issues persist with libvirt, see these ubuntu packages:
+```
 libvirt-bin:    programs for the libvirt library
 libvirt-dev:    development files for the libvirt library
 libvirt0:       library for interfacing with different virtualization systems
-
+```
 For issues with the plugin, see the 
-[python libvirt bindings](http://libvirt.org/python.html).
+[python libvirt bindings](http://libvirt.org/python.html) and the [nagios plugin spec](http://nagios.sourceforge.net/docs/3_0/pluginapi.html).
 
 patches/PR's welcome :)
 
