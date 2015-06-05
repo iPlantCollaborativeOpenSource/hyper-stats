@@ -3,6 +3,8 @@ hyper-stats
 
 A service to collect VM stats from libvirt.
 
+Overview
+--------
 hyper-stats is built on several services. 
 
  - Libvirt generates metrics on each hyperv
