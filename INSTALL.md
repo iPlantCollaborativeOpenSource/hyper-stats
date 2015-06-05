@@ -1,46 +1,78 @@
 Install
 =======
 
+Throughout this document "compute node" will refer to the physical machine
+running a hypervisor. The other system mentioned is the "monitoring server", a
+single machine which collects all the stats from the compute nodes.
+
 Libvirt
 -------
+Nagios will use the `check_nrpe` command to execute the nagios plugin
+`libvirt/virt-stats.py` on the compute nodes in your cloud. Below details
+testing the plugin on a compute node. Requirements include libvirt and the
+python bindings for its C api.
 
-Nagios will use the check_nrpe command to execute our nagios plugin
-`libvirt/virt-stats.py`.
-
-Nagios plugins are just an executable that writes to stdout accoring to the
-[nagios plugin spec](http://nagios.sourceforge.net/docs/3_0/pluginapi.html).
-
-The script must be executed as root in order for libvirt to access the
-hypervisor. 
-
-The plugin has been tested on libvirt versions 0.9.8 and up. 
-
-Check version of libvirt:
+The plugin has been tested on libvirt-0.9.8. `libvirtd` will report the
+version of libvirt that it is using. Note the command must be run as root.
 ```
-root# /usr/sbin/libvirtd --version
-/usr/sbin/libvirtd (libvirt) 1.1.1
+root> /usr/sbin/libvirtd --version
 ```
-Install python libvirt bindings:
+
+The plugin requires libvirt's python bindings.
 ```
 > apt-get python-libvirt
 ```
-Test output of plugin:
+
+Test the plugin. Note it also must be run as root which is a requirement
+of the libvirt bindings.
 ```
-root# /path/to/hyper-stats/libvirt/virt-stats.py
+root> /path/to/hyper-stats/libvirt/virt-stats.py
 ```
 
 If issues persist with libvirt, see these ubuntu packages:
+```
 libvirt-bin:    programs for the libvirt library
 libvirt-dev:    development files for the libvirt library
 libvirt0:       library for interfacing with different virtualization systems
+```
 
 For issues with the plugin, see the 
-[python libvirt bindings](http://libvirt.org/python.html).
+[python libvirt bindings](http://libvirt.org/python.html) and the [nagios
+plugin spec](http://nagios.sourceforge.net/docs/3_0/pluginapi.html).
 
 patches/PR's welcome :)
 
 Nagios
-------
+-------
+
+![nrpe
+diagram](https://exchange.nagios.org/components/com_mtree/img/listings/m/93.png)
+
+The nagios install consists of installing `nagios3` and the `check_nrpe`
+plugin on the monitoring server. `check_nrpe` is responsible for running
+programs on external servers and returning the output. The external servers
+must also run an nrpe daemon to handle those incoming connections.
+
+
+### On the monitoring server
+
+``` 
+apt-get install nagios3 apache2 php5 nagios-nrpe-plugin
+```
+
+
+
+### On the computer node
+
+```
+apt-get install nagios-nrpe-server nagios-plugins libnagios-plugin-perl
+```
+**note:** There is a nasty bug with `check_nrpe` which limits the size of the
+output that can
+be returned from a plugin to 1kb. As a countermeasure the plugin has a flag in
+the source to compress its
+output.
+
 Graphios
 --------
 Graphite
@@ -53,3 +85,4 @@ d3
  - Graphios forwards metrics to Graphite 
  - Graphite provides graphing/storage/query of timeseries data 
  - (optional) cubism renders graphite data with d3
+
