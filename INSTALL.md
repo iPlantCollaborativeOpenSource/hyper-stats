@@ -9,15 +9,17 @@ Nagios will use the check_nrpe command to execute the nagios plugin
 testing the plugin on a compute node. Requirements include libvirt
 and the python bindings for its C api.
 
-Check version of libvirt:
+###Check version of libvirt:
+The plugin has been tested on libvirt-0.9.8+
 ```
 root> /usr/sbin/libvirtd --version
 ```
-Install python libvirt bindings:
+
+###Install python libvirt bindings:
 ```
 > apt-get python-libvirt
 ```
-Test output of plugin:
+###Test output of plugin:
 ```
 root> /path/to/hyper-stats/libvirt/virt-stats.py
 ```
