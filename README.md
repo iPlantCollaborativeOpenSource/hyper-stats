@@ -34,7 +34,7 @@ Install
 -------
 See INSTALL.md.
 
-LICENSE
+License
 -------
 
 See LICENSE.txt.
