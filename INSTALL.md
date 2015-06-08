@@ -50,17 +50,46 @@ plugin on the monitoring server. `check_nrpe` is responsible for running
 programs on external servers and returning the output. The external servers
 must also run an nrpe daemon to handle those incoming connections.
 
+## Monitoring server
 
-### On the monitoring server
+The most important file is `/etc/nagios3/nagios.cfg`. It is responsible for sourcing other config files which contain plugins and descriptions of the hosts and services nagios will monitor.
+
+The general nagios structure is to define some hosts/services, nagios doesn't make a huge distinction between the two. In their definition we list what/how to monitor.
+
+Add the following to `/etc/nagios3/conf.d/hyper-hosts.cfg`. Check that nagios.cfg sources your conf.d/. The fields <HOST NAME> and <IP ADDRESS> must be supplied per compute node you wish to monitor. Notice the service and definition are sourcing other definitions (generic-host and hyper-stats-generic-service). 
+
+    # A single compute node definition
+    define host {
+        use generic-host
+        host_name <HOST NAME>
+        address <IP ADDRESS>
+    }
+
+    define service {
+        use hyper-stats-generic-service
+        host_name <HOST NAME>
+    }
+
+- add nrpe plugin
+- test by calling check_nrpe
+
+## Compute node
+
+- add_nrpe_plugin 
+- Check for nrpe config" check_nrpe_cfg 
+- Backing up nrpe config" backup_config 
+- Extend allowed hosts in config" extend_nag_allowed_hosts 
+- Add nrpe virt-stat command" add_nrpe_command 
+- Add sudo users entry for virt-stat plugin" update_visudo_allow_nrpe_plugin 
+- Commiting changes" postpone 
+- Restart nrpe" restart_nrpe
 
 ``` 
 apt-get install nagios3 apache2 php5 nagios-nrpe-plugin
 ```
 
 
-
-### On the computer node
-
+On the compute node:
 ```
 apt-get install nagios-nrpe-server nagios-plugins libnagios-plugin-perl
 ```
