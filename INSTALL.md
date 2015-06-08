@@ -7,24 +7,22 @@ single machine which collects all the stats from the compute nodes.
 
 Libvirt
 -------
-Nagios will use the `check_nrpe` command to execute the nagios plugin
-`libvirt/virt-stats.py` on the compute nodes in your cloud. Below details
-testing the plugin on a compute node. Requirements include libvirt and the
-python bindings for its C api.
+Nagios uses the `check_nrpe` command to execute the nagios plugin
+`libvirt/virt-stats.py` on the compute nodes in your cloud. In turn
+the plugin depends on the version of libvirt and its python bindings.
 
-The plugin has been tested on libvirt-0.9.8. `libvirtd` will report the
-version of libvirt that it is using. Note the command must be run as root.
+Here is a commmand to check which version of libvirt is installed. The current
+plugin supports python bindings from version 0.9.8 and up.
 ```
 root> /usr/sbin/libvirtd --version
 ```
 
-The plugin requires libvirt's python bindings.
+Fetch the libvirt python bindings.
 ```
 > apt-get python-libvirt
 ```
 
-Test the plugin. Note it also must be run as root which is a requirement
-of the libvirt bindings.
+Test the plugin. 
 ```
 root> /path/to/hyper-stats/libvirt/virt-stats.py
 ```
@@ -45,8 +43,7 @@ patches/PR's welcome :)
 Nagios
 -------
 
-![nrpe
-diagram](https://exchange.nagios.org/components/com_mtree/img/listings/m/93.png)
+![nrpe diagram](https://exchange.nagios.org/components/com_mtree/img/listings/m/93.png)
 
 The nagios install consists of installing `nagios3` and the `check_nrpe`
 plugin on the monitoring server. `check_nrpe` is responsible for running
@@ -79,10 +76,3 @@ Graphite
 --------
 d3
 --
- - Libvirt generates metrics on each hyperv
-
- - Nagios aggregates all hyperv metrics
- - Graphios forwards metrics to Graphite 
- - Graphite provides graphing/storage/query of timeseries data 
- - (optional) cubism renders graphite data with d3
-
