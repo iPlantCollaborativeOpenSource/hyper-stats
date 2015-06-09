@@ -66,7 +66,7 @@ Fetch the libvirt python bindings.
 
 Test the plugin. 
 ```
-root> /path/to/hyper-stats/libvirt/virt-stats.py
+root> libvirt/virt-stats.py
 ```
 
 If issues persist with libvirt, see these ubuntu packages:
