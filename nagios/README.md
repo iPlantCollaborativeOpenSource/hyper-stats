@@ -10,28 +10,25 @@ must also run an nrpe daemon to handle those incoming connections. This guide
 is about incorporating nagios with hyper-stats, in general it is not as
 complete as documentation solely focused on setting up nagios.
 
-### On the monitoring server
+Here are the goals:
 
+- Install/configure nagios
+- Install/configure nrpe
+- Test the setup
+
+
+# Install nagios
+
+On the monitoring server install the base packages:
 ``` 
 apt-get install nagios3 apache2 php5 nagios-nrpe-plugin
 ```
 
 The main config can be found in `/etc/nagios3/nagios.cfg` which is responsible
-for defining what services/hosts nagios monitors.
-
-In nagios.cfg you should find a line sourcing all config in
-`/etc/nagios3/conf.d/`, we will place our host definitions here.
-
-Nagios has a uniform way of defining commands/hosts/services.
-```
-define <type> {
-    <field 1>    <val 1>
-    <field 2>    <val 2>
-    ...
-}
-```
-For example, here is the way to create a host and service. Taken from this
-repo under `nagios/sample-host.cfg`.
+for defining what services/hosts nagios monitors. In nagios.cfg you should
+find a line sourcing all config in `/etc/nagios3/conf.d/`, we will place our
+host definitions there. For example, here is the way to create a host and
+service. Taken from this repo under `nagios/sample-host.cfg`.
 ```
 define host {
     use generic-host
@@ -44,14 +41,10 @@ define service {
     host_name <HOSTNAME>
 }
 ```
-This defines a single compute node with name `<HOSTNAME>`, etc. It uses prior
-definitions for generic-host, which can be found in
-`/etc/nagios3/conf.d/generic-host_nagios2.cfg`. Our service will be running
-the libvirt plugin on the compute node defined by `host_name` and `address`.
-virt-generic-service is defined in this repo as `virt-generic-service.cfg` 
-
-Inside `virt-generic-service.cfg`, the `check_command` field defines the
-nagios command `virt-stats` to be run. This is the definition for the command:
+This defines a single compute node with name `<HOSTNAME>` relying on prior
+definitions for generic-host, and virt-generic-service to handle 
+boilerplate. Inside `virt-generic-service.cfg`, the `check_command` field defines the
+nagios command `virt-stats` to be run. Below is the definition for the command:
 
 ```
 # 'virt-stats' command definition
@@ -68,7 +61,7 @@ appended to `/etc/nagios3/commands.cfg`. Place it where you like.
 
 `check_nrpe` on the monitoring server will connect to `$HOSTADDRESS$` which is
 a nagios variable replaced with the address field of our host definition. In
-order for this connection to work the host must be running an nrpe daemon and
+order for this connection to work, the host must be running an nrpe daemon and
 be configured to run the libvirt plugin. If you haven't already, see `README.md`
 in the root of the project for installing libvirt and adding the plugin. 
 
@@ -79,57 +72,58 @@ service nagios3 start # restart must be run every time, a nagios .cfg is changed
 
 See below to install the necessary daemon and configure it.
 
-### On the compute node
+# Install nrpe
+
+On the compute node install these base packages:
 
 ```
 apt-get install nagios-nrpe-server nagios-plugins libnagios-plugin-perl
 ```
-The main config file for `nrpe` is `/etc/nagios/nrpe.cfg`. Let's make an edit.
-
-Add the monitoring server as an allowed host. Update the defininition
-for `allowed_hosts` to include the IP of the monitoring server.
+The main config file for `nrpe` is `/etc/nagios/nrpe.cfg`. In order for nrpe
+to speak with nagios, the monitoring server must be added as an allowed host. 
+Update the defininition for `allowed_hosts` to include the IP of the monitoring server.
 ```
 allowed_hosts=<MONITORING SERVER IP>, ... , ... ,
 ```
 Similar to `nagios.cfg`, `nrpe.cfg` can include other configs. By default it
-should include an `nrpe.d` directory. Search for:
+should include an `nrpe.d` directory. Check for the following include:
 ```
 include_dir=/etc/nagios/nrpe.d/
 ```
 
 Add the file `nagios/virt-nrpe-cmd.cfg` from the repo into
-`/etc/nagios/nrpe.d/`
+`/etc/nagios/nrpe.d/`.
 ```
 #virt-nrpe-cmd.cfg
 command[virt-stats]=/usr/bin/sudo /usr/lib/nagios/plugins/virt-stats.py
 ```
-From earlier, `virt-stats.py` must be run with sudo so that it can access the
+From earlier, `virt-stats.py` had to be run with sudo in order to access the
 hypervisor. This adds a complication because `check_nrpe` on the monitoring
 server must remotely execute a command on the compute node with sudo
 priveleges.
 
-We will add an entry into `/etc/sudoers` to allow the nagios user the ability
+We need add an entry into `/etc/sudoers` to allow the nagios user the ability
 to execute our plugin as sudo. **NOTE:** do not directly edit `/etc/sudoers`
 instead first check:
 ```
 echo $EDITOR # equals an editor you can use
 ```
-then run
+then run:
 ```
-sudo visudo # will wrap $EDITOR
+sudo visudo # will wrap $EDITOR 
 ```
 This will check your edits before changes are committed. The reason for
-visudo, is that incorrect changes to `/etc/sudoers` will **DISABLE THE ABILITY
-TO SUDO INTO THE MACHINE**. visudo prevents incorrect changes from being
-committed, still proceed with caution.
-In `visudo` add the line.
+visudo, is that incorrect changes to `/etc/sudoers` can disable the ability
+to sudo into the machine! `visudo` prevents incorrect changes from being
+committed. In `visudo` add the line:
 ```
 nagios ALL=(ALL) NOPASSWD: /usr/lib/nagios/plugins/virt-stats.py
 ```
-Start nrpe. Below -c sources our config, and -d runs nrpe as a daemon.
+Start nrpe.
 ```
 /usr/sbin/nrpe -c /etc/nagios/nrpe.cfg -d 
 ```
+# Test the setup
 
 Before switching back to the monitoring server, verify that the plugin is
 installed and returns output. (It can be found in the repo under
