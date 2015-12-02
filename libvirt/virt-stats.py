@@ -3,13 +3,13 @@
 # Query libvirt stats on this compute node's vms
 # Output is in the form:
 # 
-#     virt-stats OK - <active> running of <total> on <host>.iplantcollaborative.org | <instance>=<cpu time>s;<mem>;<rx>B;<tx>B;<state> ...
+#     virt-stats OK - <active> running of <total> on <host> | <instance>=<cpu time>s;<mem>;<rx>B;<tx>B;<state> ...
 #
 # With the following definitions:
 # 
 #     active - the number of active instances
 #     total - the number of instances
-#     host - the hostname of this compute node
+#     host - the hostname of this compute node (contains the hostname)
 #     instance - an atmosphere recognized uuid for a guest vm
 #     cpu time - seconds an instance has been active
 #     mem - a percentage of memory (volatile) used
